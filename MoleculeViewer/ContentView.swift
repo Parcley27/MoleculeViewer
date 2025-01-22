@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 
+/*
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var items: [Item]
@@ -52,6 +53,15 @@ struct ContentView: View {
                 modelContext.delete(items[index])
             }
         }
+    }
+}
+ */
+
+struct ContentView: View {
+    var body: some View {
+        MoleculeView()
+            .edgesIgnoringSafeArea(.all)
+        
     }
 }
 
