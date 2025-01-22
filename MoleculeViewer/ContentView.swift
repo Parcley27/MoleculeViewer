@@ -58,10 +58,22 @@ struct ContentView: View {
  */
 
 struct ContentView: View {
-    var body: some View {
-        MoleculeView()
-            .edgesIgnoringSafeArea(.all)
+    func loadMolFile(named filename: String) -> String? {
+        if let filePath = Bundle.main.path(forResource: filename, ofType: "mol") {
+            return try? String(contentsOfFile: filePath, encoding: .utf8)
+            
+        }
         
+        return nil
+    }
+    
+    var body: some View {
+        if let molFileContent = loadMolFile(named: "Sulfur Dioxide") {
+            
+            MoleculeView(molFile: molFileContent)
+                .edgesIgnoringSafeArea(.all)
+            
+        }
     }
 }
 
