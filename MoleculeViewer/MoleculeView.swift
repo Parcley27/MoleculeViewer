@@ -253,7 +253,7 @@ struct MoleculeView: View {
         let cylinderNode = SCNNode(geometry: cylinder)
         
         // Position the cylinder at the midpoint of the dipole vector
-        let midPoint = origin + (dipole * 0.5)
+        let midPoint = dipole * 0.5
         cylinderNode.position = midPoint
         
         // Align the cylinder with the dipole vector
@@ -272,7 +272,7 @@ struct MoleculeView: View {
         cone.materials = [coneMaterial]
         
         let coneNode = SCNNode(geometry: cone)
-        coneNode.position = origin + dipole // Position the cone at the tip of the dipole
+        coneNode.position = dipole // Position the cone at the tip of the dipole
         coneNode.rotation = cylinderNode.rotation // Match the cylinder's rotation
         
         // Add the cylinder and cone to the dipole node
@@ -280,6 +280,28 @@ struct MoleculeView: View {
         dipoleNode.addChildNode(coneNode)
         
         return dipoleNode
+    }
+    
+    func calculateDipoleDipoleInteraction(dipole1: SCNVector3, dipole2: SCNVector3, position1: SCNVector3, position2: SCNVector3) -> Float {
+        // Distance vector between the two dipoles
+        let rVector = SCNVector3(
+            position2.x - position1.x,
+            position2.y - position1.y,
+            position2.z - position1.z
+        )
+        
+        let r = rVector.length() // Magnitude of the distance vector
+        let rUnit = rVector.normalized() // Unit vector in the direction of r
+        
+        // Dot products
+        let mu1DotMu2 = dipole1.dot(dipole2)
+        let mu1DotR = dipole1.dot(rUnit)
+        let mu2DotR = dipole2.dot(rUnit)
+        
+        // Calculate the interaction energy
+        let energy = -mu1DotMu2 / pow(r, 3) + 3 * mu1DotR * mu2DotR / pow(r, 3)
+        
+        return energy
     }
     
     func distanceBetween(_ point1: SCNVector3, _ point2: SCNVector3) -> Float {
@@ -400,13 +422,13 @@ struct MoleculeView: View {
         
     }
     
-    func createMolecularStructure(at origin: SCNVector3 = SCNVector3(0, 0, 0), rotation: SCNVector3 = SCNVector3(0, 0, 0)) -> SCNNode {
+    func createMolecularStructure(at origin: SCNVector3 = SCNVector3(0, 0, 0), rotation: SCNVector3 = SCNVector3(0, 0, 0)) -> (node: SCNNode, dipole: SCNVector3, position: SCNVector3) {
         let structureNode = SCNNode() // Parent node for the molecular structure
         
         // Load atoms and bonds
         guard let atoms = loadAtomsAndBonds() else {
             print("Failed to load atoms and bonds")
-            return structureNode
+            return (structureNode, SCNVector3(0, 0, 0), origin)
         }
         
         var allBonds: [Bond] = [] // Collect all bonds for dipole moment calculation
@@ -434,19 +456,19 @@ struct MoleculeView: View {
         // Calculate the net dipole moment
         let netDipoleMoment = calculateNetDipoleMoment(for: allBonds)
         print("Net Dipole Moment: \(netDipoleMoment)")
-        
         print("Dipome Magnitude: \(sqrt(pow(netDipoleMoment.x, 2) + pow(netDipoleMoment.y, 2) + pow(netDipoleMoment.z, 2)))")
+
         
         
         // Add the dipole visualization
-        let dipoleNode = createDipoleNode(from: origin, withDipole: netDipoleMoment)
+        let dipoleNode = createDipoleNode(from: origin, withDipole: netDipoleMoment, color: .blue)
         structureNode.addChildNode(dipoleNode)
         
         // Position and rotate the structure
         structureNode.position = origin
         structureNode.eulerAngles = SCNVector3(rotation.x, rotation.y, rotation.z)
         
-        return structureNode
+        return (structureNode, netDipoleMoment, origin)
         
     }
     
@@ -463,18 +485,34 @@ struct MoleculeView: View {
          */
         
         //scene.rootNode.addChildNode(molecularStructureNode)
-        scene.rootNode.addChildNode(createMolecularStructure())
+        //scene.rootNode.addChildNode(createMolecularStructure())
         //scene.rootNode.addChildNode(createMolecularStructure(at: SCNVector3(0, 0, 10)))
         
         /*
         SCNTransaction.begin()
         SCNTransaction.animationDuration = 2.0 // Rotate over 2 seconds
-
+         
         // Apply rotation
         molecularStructureNode.eulerAngles = SCNVector3(0, Double.pi, 0) // Rotate 180° around Y-axis
-
+         
         SCNTransaction.commit()
         */
+        
+        let molecule1 = createMolecularStructure(at: SCNVector3(0, 5, 0), rotation: SCNVector3(0, 0, 0))
+        let molecule2 = createMolecularStructure(at: SCNVector3(0, -5, 0), rotation: SCNVector3(0, 0, 0))
+        
+        scene.rootNode.addChildNode(molecule1.node)
+        scene.rootNode.addChildNode(molecule2.node)
+        
+        // Calculate dipole-dipole interaction energy
+        let interactionEnergy = calculateDipoleDipoleInteraction(
+            dipole1: molecule1.dipole,
+            dipole2: molecule2.dipole,
+            position1: molecule1.position,
+            position2: molecule2.position
+        )
+        
+        print("Dipole-Dipole Interaction Energy: \(interactionEnergy)")
         
         // XYZ Coordniate reference
         let cylinderNodeX = createCylinder(from: SCNVector3(0, 0, 0), to: SCNVector3(1, 0, 0), color: .red)
