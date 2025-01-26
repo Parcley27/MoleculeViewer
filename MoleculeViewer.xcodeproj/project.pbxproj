@@ -29,9 +29,34 @@
 		6E4D62E72D40BF35009545FD /* MoleculeViewerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoleculeViewerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6EAE1E7C2D461C4C0096861B /* Exceptions for "MoleculeViewer" folder in "MoleculeViewer" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Molecule Files/Caffeine CID 2519.sdf",
+				"Molecule Files/Methane.mol",
+				"Molecule Files/Water.mol",
+			);
+			target = 6E4D62CA2D40BF34009545FD /* MoleculeViewer */;
+		};
+		6EAE1E7D2D461C4C0096861B /* Exceptions for "MoleculeViewer" folder in "MoleculeViewerUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Molecule Files/Caffeine CID 2519.sdf",
+				"Molecule Files/Methane.mol",
+				"Molecule Files/Water.mol",
+			);
+			target = 6E4D62E62D40BF35009545FD /* MoleculeViewerUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6E4D62CD2D40BF34009545FD /* MoleculeViewer */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6EAE1E7C2D461C4C0096861B /* Exceptions for "MoleculeViewer" folder in "MoleculeViewer" target */,
+				6EAE1E7D2D461C4C0096861B /* Exceptions for "MoleculeViewer" folder in "MoleculeViewerUITests" target */,
+			);
 			path = MoleculeViewer;
 			sourceTree = "<group>";
 		};

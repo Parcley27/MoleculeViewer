@@ -7,293 +7,536 @@
 
 import SwiftUI
 import SceneKit
+import Foundation
 
-struct MoleculeView: UIViewRepresentable {
-    let molFile: String
+struct Atom {
+    var id: Int
+    var position: SCNVector3
+    var element: String
+    var size: CGFloat
+    var color: UIColor
+    var bonds: [Bond] // Bonds directly associated with the atom
     
-    func makeUIView(context: Context) -> SCNView {
-        let sceneView = SCNView()
-        sceneView.scene = createMoleculeScene(from: molFile)
-        sceneView.allowsCameraControl = true
-        sceneView.backgroundColor = .black
-        return sceneView
-    }
+}
 
-    func updateUIView(_ uiView: SCNView, context: Context) {}
+struct Bond {
+    var atom1: Atom
+    var atom2: Atom
+    var type: Int // Bond type (e.g., single = 1, double = 2, etc.)
+    var dipoleVector: SCNVector3? // Vector representing the dipole moment for this bond
+    
+}
 
-    private func createMoleculeScene(from molFile: String) -> SCNScene {
-        let scene = SCNScene()
-        let lines = molFile.components(separatedBy: .newlines)
+struct MoleculeView: View {
+    func loadAtomsAndBonds() -> [Atom]? {
+        // Hardcoded .mol content including the header line
+        let molContent = """
+         24 25  0     0  0  0  0  0  0999 V2000
+            0.4700    2.5688    0.0006 O   0  0  0  0  0  0  0  0  0  0  0  0
+           -3.1271   -0.4436   -0.0003 O   0  0  0  0  0  0  0  0  0  0  0  0
+           -0.9686   -1.3125    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
+            2.2182    0.1412   -0.0003 N   0  0  0  0  0  0  0  0  0  0  0  0
+           -1.3477    1.0797   -0.0001 N   0  0  0  0  0  0  0  0  0  0  0  0
+            1.4119   -1.9372    0.0002 N   0  0  0  0  0  0  0  0  0  0  0  0
+            0.8579    0.2592   -0.0008 C   0  0  0  0  0  0  0  0  0  0  0  0
+            0.3897   -1.0264   -0.0004 C   0  0  0  0  0  0  0  0  0  0  0  0
+            0.0307    1.4220   -0.0006 C   0  0  0  0  0  0  0  0  0  0  0  0
+           -1.9061   -0.2495   -0.0004 C   0  0  0  0  0  0  0  0  0  0  0  0
+            2.5032   -1.1998    0.0003 C   0  0  0  0  0  0  0  0  0  0  0  0
+           -1.4276   -2.6960    0.0008 C   0  0  0  0  0  0  0  0  0  0  0  0
+            3.1926    1.2061    0.0003 C   0  0  0  0  0  0  0  0  0  0  0  0
+           -2.2969    2.1881    0.0007 C   0  0  0  0  0  0  0  0  0  0  0  0
+            3.5163   -1.5787    0.0008 H   0  0  0  0  0  0  0  0  0  0  0  0
+           -1.0451   -3.1973   -0.8937 H   0  0  0  0  0  0  0  0  0  0  0  0
+           -2.5186   -2.7596    0.0011 H   0  0  0  0  0  0  0  0  0  0  0  0
+           -1.0447   -3.1963    0.8957 H   0  0  0  0  0  0  0  0  0  0  0  0
+            4.1992    0.7801    0.0002 H   0  0  0  0  0  0  0  0  0  0  0  0
+            3.0468    1.8092   -0.8992 H   0  0  0  0  0  0  0  0  0  0  0  0
+            3.0466    1.8083    0.9004 H   0  0  0  0  0  0  0  0  0  0  0  0
+           -1.8087    3.1651   -0.0003 H   0  0  0  0  0  0  0  0  0  0  0  0
+           -2.9322    2.1027    0.8881 H   0  0  0  0  0  0  0  0  0  0  0  0
+           -2.9346    2.1021   -0.8849 H   0  0  0  0  0  0  0  0  0  0  0  0
+          1  9  2  0  0  0  0
+          2 10  2  0  0  0  0
+          3  8  1  0  0  0  0
+          3 10  1  0  0  0  0
+          3 12  1  0  0  0  0
+          4  7  1  0  0  0  0
+          4 11  1  0  0  0  0
+          4 13  1  0  0  0  0
+          5  9  1  0  0  0  0
+          5 10  1  0  0  0  0
+          5 14  1  0  0  0  0
+          6  8  1  0  0  0  0
+          6 11  2  0  0  0  0
+          7  8  2  0  0  0  0
+          7  9  1  0  0  0  0
+         11 15  1  0  0  0  0
+         12 16  1  0  0  0  0
+         12 17  1  0  0  0  0
+         12 18  1  0  0  0  0
+         13 19  1  0  0  0  0
+         13 20  1  0  0  0  0
+         13 21  1  0  0  0  0
+         14 22  1  0  0  0  0
+         14 23  1  0  0  0  0
+         14 24  1  0  0  0  0
+        """
         
-        // Read atom and bond counts from the 4th line
-        let countsLine = lines[3]
-        let atomCountRange = countsLine.index(countsLine.startIndex, offsetBy: 0)..<countsLine.index(countsLine.startIndex, offsetBy: 3)
-        let bondCountRange = countsLine.index(countsLine.startIndex, offsetBy: 3)..<countsLine.index(countsLine.startIndex, offsetBy: 6)
+        let atomColors = ["H": UIColor(Color.white), "C": UIColor(Color.black), "N": UIColor(Color.blue), "O": UIColor(Color.red)]
+        // From https://www.chem.ucla.edu/~harding/IGOC/A/atomic_radius.html
+        let atomSizes = ["H": 0.25, "C": 0.70, "N": 0.65, "O": 0.60]
+        
+        let sizeScalar = 0.5
         
         
-        guard let atomCount = Int(countsLine[atomCountRange].trimmingCharacters(in: .whitespaces)),
-              let bondCount = Int(countsLine[bondCountRange].trimmingCharacters(in: .whitespaces)) else {
-            return scene
+        var atoms: [Atom] = []
+        var bonds: [Bond] = []
+        
+        let lines = molContent.split(separator: "\n")
+        
+        // Parse the header to determine the number of atoms and bonds
+        guard let headerLine = lines.first else {
+            print("Error: Missing .mol header.")
+            
+            return nil
             
         }
         
-        // Parse atoms
-        var atomPositions = [SCNVector3]()
-        for i in 0..<atomCount {
-            let atomLine = lines[4 + i]
-            let components = atomLine.split(separator: " ", omittingEmptySubsequences: true)
-            if components.count >= 4 {
-                let x = Float(components[0]) ?? 0
-                let y = Float(components[1]) ?? 0
-                let z = Float(components[2]) ?? 0
-                atomPositions.append(SCNVector3(x, y, z))
+        let headerComponents = headerLine.split(separator: " ", omittingEmptySubsequences: true)
+        
+        guard headerComponents.count >= 2,
+          let atomCount = Int(headerComponents[0]),
+          let bondCount = Int(headerComponents[1]) else {
+                print("Error: Invalid .mol header format.")
                 
-                // Create and add atom node
-                let atomNode = createAtom(radius: 0.2, color: .cyan)
-                atomNode.position = SCNVector3(x, y, z)
-                scene.rootNode.addChildNode(atomNode)
+                return nil
+            }
+        
+        // Parse atoms
+        for i in 1...atomCount {
+            let line = lines[i]
+            let components = line.split(separator: " ", omittingEmptySubsequences: true)
+            
+            if components.count >= 4, let x = Float(components[0]), let y = Float(components[1]), let z = Float(components[2]) {
+                let element = String(components[3])
+                
+                let atom = Atom(
+                    id: i, // Atom ID corresponds to line index (1-based)
+                    position: SCNVector3(x, y, z),
+                    element: element,
+                    size: (atomSizes[element] ?? 0.5) * sizeScalar,
+                    color: atomColors[element] ?? UIColor(Color.gray),
+                    bonds: []
+                    
+                )
+                
+                atoms.append(atom)
+                
             }
         }
         
         // Parse bonds
-        for i in 0..<bondCount {
-            let bondLine = lines[4 + atomCount + i]
-            let components = bondLine.split(separator: " ", omittingEmptySubsequences: true)
-            if components.count >= 3 {
-                let startIndex = Int(components[0]) ?? 0
-                let endIndex = Int(components[1]) ?? 0
+        for i in (1 + atomCount)...(1 + atomCount + bondCount - 1) {
+            let line = lines[i]
+            let components = line.split(separator: " ", omittingEmptySubsequences: true)
+            
+            if components.count >= 3,
+               let atom1Id = Int(components[0]),
+               let atom2Id = Int(components[1]),
+               let bondType = Int(components[2]) {
                 
-                if startIndex > 0 && endIndex > 0 {
-                    let start = atomPositions[startIndex - 1]
-                    let end = atomPositions[endIndex - 1]
+                let atom1 = atoms[atom1Id - 1] // 1-based index -> 0-based
+                let atom2 = atoms[atom2Id - 1]
+                
+                // Create bond
+                let bond = Bond(atom1: atom1, atom2: atom2, type: bondType)
+                bonds.append(bond)
+                
+                // Update atom bonds
+                atoms[atom1Id - 1].bonds.append(bond)
+                atoms[atom2Id - 1].bonds.append(bond)
+                
+            }
+        }
+        
+        return atoms
+        
+    }
+    
+    func createSphere(at position: SCNVector3, size: CGFloat = 0.1, color: UIColor = .gray) -> SCNNode {
+        let sphere = SCNSphere(radius: size)
+        
+        let node = SCNNode(geometry: sphere)
+        node.geometry?.firstMaterial?.diffuse.contents = color
+        node.position = position
+        
+        return node
+        
+    }
+    
+    func createBonds(from atoms: [Atom]) -> [Bond] {
+        var bonds: [Bond] = []
+        
+        // Set a threshold for bond distance (adjust based on the molecule)
+        let bondThreshold: Float = 2.0
+        
+        for i in 0..<atoms.count {
+            for j in i+1..<atoms.count {
+                let atom1 = atoms[i]
+                let atom2 = atoms[j]
+                let distance = distanceBetween(atom1.position, atom2.position)
+                
+                if distance < bondThreshold {
+                    // Create a bond with a default type of single bond
+                    // Bond type could be updated later based on .mol data
+                    let bond = Bond(atom1: atom1, atom2: atom2, type: 1)
+                    bonds.append(bond)
                     
-                    // Create and add bond node
-                    let bondNode = createBond(from: start, to: end, radius: 0.05, color: .gray)
-                    scene.rootNode.addChildNode(bondNode)
                 }
             }
         }
         
-        return scene
+        return bonds
     }
     
-    private func createAtom(radius: CGFloat, color: UIColor) -> SCNNode {
-        let sphere = SCNSphere(radius: radius)
-        sphere.firstMaterial?.diffuse.contents = color
-        return SCNNode(geometry: sphere)
+    func calculateDipoleVector(for bond: Bond) -> SCNVector3 {
+        let electronegativities: [String: Float] = [
+            "H": 2.20, "C": 2.55, "O": 3.44, "N": 3.04, "S": 2.58 // Example values
+        ]
+        
+        // Get electronegativities of the two atoms
+        let en1 = electronegativities[bond.atom1.element] ?? 0
+        let en2 = electronegativities[bond.atom2.element] ?? 0
+        
+        // Calculate charge difference (q) and bond direction (d)
+        let chargeDifference = abs(en1 - en2)
+        let direction = SCNVector3(
+            bond.atom2.position.x - bond.atom1.position.x,
+            bond.atom2.position.y - bond.atom1.position.y,
+            bond.atom2.position.z - bond.atom1.position.z
+        )
+        let distance = direction.length() // Bond length
+        let normalizedDirection = direction.normalized() // Normalize the bond vector
+        
+        // Dipole vector = q * d
+        let dipoleVector = normalizedDirection * chargeDifference * distance
+        return dipoleVector
+        
     }
     
-    private func createBond(from start: SCNVector3, to end: SCNVector3, radius: CGFloat, color: UIColor) -> SCNNode {
-        let vector = SCNVector3(end.x - start.x, end.y - start.y, end.z - start.z)
-        let height = sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z)
+    func calculateNetDipoleMoment(for bonds: [Bond]) -> SCNVector3 {
+        var netDipoleMoment = SCNVector3(0, 0, 0)
         
-        let cylinder = SCNCylinder(radius: radius, height: CGFloat(height))
-        cylinder.firstMaterial?.diffuse.contents = color
+        for bond in bonds {
+            let dipoleVector = calculateDipoleVector(for: bond)
+            netDipoleMoment = netDipoleMoment + dipoleVector
+            
+        }
         
-        let bondNode = SCNNode(geometry: cylinder)
-        bondNode.position = SCNVector3((start.x + end.x) / 2, (start.y + end.y) / 2, (start.z + end.z) / 2)
-        bondNode.look(at: end)
-        bondNode.eulerAngles.x += .pi / 2
+        return netDipoleMoment
+        
+    }
+    
+    func createDipoleNode(from origin: SCNVector3 = SCNVector3(0, 0, 0), withDipole dipole: SCNVector3, color: UIColor = UIColor.magenta) -> SCNNode {
+        let dipoleNode = SCNNode()
+        
+        // Calculate the length of the dipole vector
+        let dipoleLength = dipole.length()
+        
+        // Create a cylinder to represent the dipole vector
+        let cylinder = SCNCylinder(radius: 0.05, height: CGFloat(dipoleLength))
+        let material = SCNMaterial()
+        material.diffuse.contents = color // Set the arrow color
+        cylinder.materials = [material]
+        
+        let cylinderNode = SCNNode(geometry: cylinder)
+        
+        // Position the cylinder at the midpoint of the dipole vector
+        let midPoint = origin + (dipole * 0.5)
+        cylinderNode.position = midPoint
+        
+        // Align the cylinder with the dipole vector
+        let up = SCNVector3(0, 1, 0) // Default up vector
+        let axis = up.cross(dipole)  // Cross product for rotation axis
+        let angle = acos(up.dot(dipole) / (up.length() * dipole.length())) // Angle between vectors
+        
+        if axis.length() > 0 {
+            cylinderNode.rotation = SCNVector4(axis.x, axis.y, axis.z, angle)
+        }
+        
+        // Add an arrowhead (optional)
+        let cone = SCNCone(topRadius: 0, bottomRadius: 0.1, height: 0.2)
+        let coneMaterial = SCNMaterial()
+        coneMaterial.diffuse.contents = color
+        cone.materials = [coneMaterial]
+        
+        let coneNode = SCNNode(geometry: cone)
+        coneNode.position = origin + dipole // Position the cone at the tip of the dipole
+        coneNode.rotation = cylinderNode.rotation // Match the cylinder's rotation
+        
+        // Add the cylinder and cone to the dipole node
+        dipoleNode.addChildNode(cylinderNode)
+        dipoleNode.addChildNode(coneNode)
+        
+        return dipoleNode
+    }
+    
+    func distanceBetween(_ point1: SCNVector3, _ point2: SCNVector3) -> Float {
+        let dx = point2.x - point1.x
+        let dy = point2.y - point1.y
+        let dz = point2.z - point1.z
+        
+        return sqrt(dx * dx + dy * dy + dz * dz)
+        
+    }
+    
+    func createBondNode(from position1: SCNVector3, to position2: SCNVector3, bondType: Int = 1, color: UIColor = UIColor.gray, radius: CGFloat = 0.04) -> SCNNode {
+        let bondNode = SCNNode()
+        
+        // Calculate the direction vector (from position1 to position2)
+        let direction = SCNVector3(position2.x - position1.x, position2.y - position1.y, position2.z - position1.z)
+        let midPoint = SCNVector3(
+            (position1.x + position2.x) / 2,
+            (position1.y + position2.y) / 2,
+            (position1.z + position2.z) / 2
+        )
+        
+        // Normalize the direction vector
+        let normalizedDirection = direction.normalized()
+                
+        for bondNumber in 0..<bondType {
+            // Calculate offset position
+            //let bondOffset = offset * Float((bondNumber + bondType - 1)) // Spread bonds symmetrically
+            //let bondOffset = offset * (Float((bondNumber + bondType)) - 2.5)
+            
+            // Perpendicular offset vector for multiple bonds
+            var offset = normalizedDirection.perpendicular().normalized() * (0.2)
+            
+            if bondType == 3 {
+                offset = normalizedDirection.perpendicular().normalized() * (0.15)
+                
+            }
+            
+            var bondOffset: SCNVector3 = .init()
+            
+            if bondType == 1 {
+                bondOffset = offset * Float((bondNumber + bondType - 1))
+                
+            } else if bondType == 2 {
+                bondOffset = offset * (Float((bondNumber + bondType)) - 2.5)
+                
+            } else {
+                bondOffset = offset * Float((bondNumber + bondType - 4))
+                
+            }
+            
+            
+            // Create a cylinder for the bond
+            let length = distanceBetween(position1, position2)
+            let cylinder = SCNCylinder(radius: radius, height: CGFloat(length))
+            
+            // Apply color to the cylinder
+            let material = SCNMaterial()
+            material.diffuse.contents = color
+            cylinder.materials = [material]
+            
+            // Create a node for the cylinder
+            let cylinderNode = SCNNode(geometry: cylinder)
+            
+            // Set position of the bond at the midpoint plus the offset
+            cylinderNode.position = midPoint + bondOffset
+            
+            // Compute the rotation axis (cross product of the cylinder's local up vector and the direction vector)
+            let up = SCNVector3(0, 1, 0)
+            let axis = up.cross(direction)
+            let angle = acos(up.dot(direction) / (up.length() * direction.length()))
+            
+            // Apply the rotation to align the cylinder
+            cylinderNode.rotation = SCNVector4(axis.x, axis.y, axis.z, angle)
+            
+            bondNode.addChildNode(cylinderNode)
+        }
         
         return bondNode
+    }
+    
+    func createCylinder(from pointA: SCNVector3, to pointB: SCNVector3, color: UIColor = UIColor.gray, radius: CGFloat = 0.025) -> SCNNode {
+        // Calculate the vector between pointA and pointB
+        let direction = SCNVector3(pointB.x - pointA.x, pointB.y - pointA.y, pointB.z - pointA.z)
+        
+        // Calculate the distance between the two points (cylinder height)
+        let height = distanceBetween(pointA, pointB)
+        
+        // Create the cylinder geometry
+        let cylinder = SCNCylinder(radius: radius, height: CGFloat(height))
+        
+        // Apply color to the cylinder's material
+        let material = SCNMaterial()
+        material.diffuse.contents = color
+        cylinder.materials = [material]
+        
+        // Create a node with the cylinder geometry
+        let cylinderNode = SCNNode(geometry: cylinder)
+        
+        // Position the cylinder at the midpoint of pointA and pointB
+        let midPoint = SCNVector3(
+            (pointA.x + pointB.x) / 2,
+            (pointA.y + pointB.y) / 2,
+            (pointA.z + pointB.z) / 2
+        )
+        cylinderNode.position = midPoint
+        
+        // Align the cylinder along the vector from pointA to pointB
+        let up = SCNVector3(0, 1, 0) // Default cylinder up direction
+        let axis = up.cross(direction) // Rotation axis (cross product)
+        let angle = acos(up.dot(direction) / (up.length() * direction.length())) // Rotation angle
+        
+        if axis.length() > 0 { // Avoid invalid rotations
+            cylinderNode.rotation = SCNVector4(axis.x, axis.y, axis.z, angle)
+        }
+        
+        return cylinderNode
+        
+    }
+    
+    func createMolecularStructure(at origin: SCNVector3 = SCNVector3(0, 0, 0), rotation: SCNVector3 = SCNVector3(0, 0, 0)) -> SCNNode {
+        let structureNode = SCNNode() // Parent node for the molecular structure
+        
+        // Load atoms and bonds
+        guard let atoms = loadAtomsAndBonds() else {
+            print("Failed to load atoms and bonds")
+            return structureNode
+        }
+        
+        var allBonds: [Bond] = [] // Collect all bonds for dipole moment calculation
+        
+        // Create and add atom nodes
+        for atom in atoms {
+            let atomNode = createSphere(at: atom.position, size: atom.size, color: atom.color)
+            structureNode.addChildNode(atomNode) // Add atom as child of structureNode
+        }
+        
+        // Create and add bond nodes
+        for atom in atoms {
+            for bond in atom.bonds {
+                // Only create bonds where this atom is the "first" to avoid duplication
+                if bond.atom1.id < bond.atom2.id {
+                    let bondNode = createBondNode(from: bond.atom1.position, to: bond.atom2.position, bondType: bond.type)
+                    structureNode.addChildNode(bondNode) // Add bond as child of structureNode
+                    
+                    // Store the bond for dipole moment calculation
+                    allBonds.append(bond)
+                }
+            }
+        }
+        
+        // Calculate the net dipole moment
+        let netDipoleMoment = calculateNetDipoleMoment(for: allBonds)
+        print("Net Dipole Moment: \(netDipoleMoment)")
+        
+        print("Dipome Magnitude: \(sqrt(pow(netDipoleMoment.x, 2) + pow(netDipoleMoment.y, 2) + pow(netDipoleMoment.z, 2)))")
+        
+        
+        // Add the dipole visualization
+        let dipoleNode = createDipoleNode(from: origin, withDipole: netDipoleMoment)
+        structureNode.addChildNode(dipoleNode)
+        
+        // Position and rotate the structure
+        structureNode.position = origin
+        structureNode.eulerAngles = SCNVector3(rotation.x, rotation.y, rotation.z)
+        
+        return structureNode
+        
+    }
+    
+    func createScene() -> SCNScene {
+        let scene = SCNScene()
+        
+        /*
+        let molecularStructureNode = createMolecularStructure(
+            at: SCNVector3(0, 0, 0),
+            //rotation: SCNVector3(0, Double.pi / 4, 0) // Rotate 45 degrees around the Y-axis
+            rotation: SCNVector3(0, 0, 0)
+            
+        )
+         */
+        
+        //scene.rootNode.addChildNode(molecularStructureNode)
+        scene.rootNode.addChildNode(createMolecularStructure())
+        //scene.rootNode.addChildNode(createMolecularStructure(at: SCNVector3(0, 0, 10)))
+        
+        /*
+        SCNTransaction.begin()
+        SCNTransaction.animationDuration = 2.0 // Rotate over 2 seconds
+
+        // Apply rotation
+        molecularStructureNode.eulerAngles = SCNVector3(0, Double.pi, 0) // Rotate 180° around Y-axis
+
+        SCNTransaction.commit()
+        */
+        
+        // XYZ Coordniate reference
+        let cylinderNodeX = createCylinder(from: SCNVector3(0, 0, 0), to: SCNVector3(1, 0, 0), color: .red)
+        let cylinderNodeY = createCylinder(from: SCNVector3(0, 0, 0), to: SCNVector3(0, 1, 0), color: .green)
+        let cylinderNodeZ = createCylinder(from: SCNVector3(0, 0, 0), to: SCNVector3(0, 0, 1), color: .blue)
+        
+        scene.rootNode.addChildNode(cylinderNodeX)
+        scene.rootNode.addChildNode(cylinderNodeY)
+        scene.rootNode.addChildNode(cylinderNodeZ)
+        
+        let lightNode = SCNNode()
+        let light = SCNLight()
+        light.type = .directional
+        light.intensity = 1000
+        light.color = UIColor.white
+        light.castsShadow = true
+        
+        lightNode.light = light
+        lightNode.eulerAngles = SCNVector3(-1, 0, Double.pi/4)
+        lightNode.position = SCNVector3(0, 10, 0)
+        scene.rootNode.addChildNode(lightNode)
+        
+        let ambientLightNode = SCNNode()
+        let ambientLight = SCNLight()
+        ambientLight.type = .ambient
+        ambientLight.intensity = 200
+        ambientLight.color = UIColor.white
+        
+        ambientLightNode.light = ambientLight
+        scene.rootNode.addChildNode(ambientLightNode)
+        
+        let cameraNode = SCNNode()
+        let camera = SCNCamera()
+        camera.fieldOfView = 60
+        camera.zNear = 1
+        camera.zFar = 100
+        camera.wantsDepthOfField = false
+        camera.focalLength = 50
+        //camera.aperture = 0.5
+
+        cameraNode.camera = camera
+        cameraNode.position = SCNVector3(0, 10, 50)
+        cameraNode.look(at: SCNVector3(0, 0, 0))
+        scene.rootNode.addChildNode(cameraNode)
+        
+        return scene
+        
+    }
+    
+    var body: some View {
+        SceneView(
+            scene: createScene(),
+            options: [.allowsCameraControl],
+            preferredFramesPerSecond: 120
+        )
+        .ignoresSafeArea()
         
     }
 }
 
 #Preview {
-    let testData = """
-5793
-  -OEChem-01222501053D
-
- 24 24  0     1  0  0  0  0  0999 V2000
-   -0.6679    1.1587    0.2570 O   0  0  0  0  0  0  0  0  0  0  0  0
-   -0.8870   -2.4483   -0.3388 O   0  0  0  0  0  0  0  0  0  0  0  0
-    1.8623   -2.0693    0.4696 O   0  0  0  0  0  0  0  0  0  0  0  0
-    2.8609    0.5414   -0.4619 O   0  0  0  0  0  0  0  0  0  0  0  0
-    1.1222    2.6552    0.2574 O   0  0  0  0  0  0  0  0  0  0  0  0
-   -3.3742    0.9717   -0.1865 O   0  0  0  0  0  0  0  0  0  0  0  0
-   -0.3727   -1.2470    0.2300 C   0  0  1  0  0  0  0  0  0  0  0  0
-    1.0856   -1.0709   -0.1940 C   0  0  1  0  0  0  0  0  0  0  0  0
-   -1.2211   -0.0621   -0.2375 C   0  0  1  0  0  0  0  0  0  0  0  0
-    1.6082    0.3151    0.1839 C   0  0  2  0  0  0  0  0  0  0  0  0
-    0.6388    1.4132   -0.2534 C   0  0  1  0  0  0  0  0  0  0  0  0
-   -2.6550   -0.1577    0.2740 C   0  0  0  0  0  0  0  0  0  0  0  0
-   -0.4248   -1.3522    1.3206 H   0  0  0  0  0  0  0  0  0  0  0  0
-    1.2066   -1.2487   -1.2697 H   0  0  0  0  0  0  0  0  0  0  0  0
-   -1.2548   -0.0098   -1.3343 H   0  0  0  0  0  0  0  0  0  0  0  0
-    1.7952    0.3598    1.2636 H   0  0  0  0  0  0  0  0  0  0  0  0
-    0.5967    1.5141   -1.3440 H   0  0  0  0  0  0  0  0  0  0  0  0
-   -2.6916   -0.1535    1.3685 H   0  0  0  0  0  0  0  0  0  0  0  0
-   -3.1564   -1.0581   -0.0922 H   0  0  0  0  0  0  0  0  0  0  0  0
-   -0.8514   -2.3615   -1.3066 H   0  0  0  0  0  0  0  0  0  0  0  0
-    1.4973   -2.9356    0.2200 H   0  0  0  0  0  0  0  0  0  0  0  0
-    2.7165    0.4989   -1.4227 H   0  0  0  0  0  0  0  0  0  0  0  0
-    1.4876    2.5033    1.1448 H   0  0  0  0  0  0  0  0  0  0  0  0
-   -2.9192    1.7652    0.1440 H   0  0  0  0  0  0  0  0  0  0  0  0
-  1  9  1  0  0  0  0
-  1 11  1  0  0  0  0
-  2  7  1  0  0  0  0
-  2 20  1  0  0  0  0
-  3  8  1  0  0  0  0
-  3 21  1  0  0  0  0
-  4 10  1  0  0  0  0
-  4 22  1  0  0  0  0
-  5 11  1  0  0  0  0
-  5 23  1  0  0  0  0
-  6 12  1  0  0  0  0
-  6 24  1  0  0  0  0
-  7  8  1  0  0  0  0
-  7  9  1  0  0  0  0
-  7 13  1  0  0  0  0
-  8 10  1  0  0  0  0
-  8 14  1  0  0  0  0
-  9 12  1  0  0  0  0
-  9 15  1  0  0  0  0
- 10 11  1  0  0  0  0
- 10 16  1  0  0  0  0
- 11 17  1  0  0  0  0
- 12 18  1  0  0  0  0
- 12 19  1  0  0  0  0
-M  END
-> <PUBCHEM_COMPOUND_CID>
-5793
-
-> <PUBCHEM_CONFORMER_RMSD>
-0.6
-
-> <PUBCHEM_CONFORMER_DIVERSEORDER>
-1
-8
-4
-3
-6
-2
-7
-5
-
-> <PUBCHEM_MMFF94_PARTIAL_CHARGES>
-17
-1 -0.56
-10 0.28
-11 0.56
-12 0.28
-2 -0.68
-20 0.4
-21 0.4
-22 0.4
-23 0.4
-24 0.4
-3 -0.68
-4 -0.68
-5 -0.68
-6 -0.68
-7 0.28
-8 0.28
-9 0.28
-
-> <PUBCHEM_EFFECTIVE_ROTOR_COUNT>
-2.2
-
-> <PUBCHEM_PHARMACOPHORE_FEATURES>
-12
-1 1 acceptor
-1 2 acceptor
-1 2 donor
-1 3 acceptor
-1 3 donor
-1 4 acceptor
-1 4 donor
-1 5 acceptor
-1 5 donor
-1 6 acceptor
-1 6 donor
-6 1 7 8 9 10 11 rings
-
-> <PUBCHEM_HEAVY_ATOM_COUNT>
-12
-
-> <PUBCHEM_ATOM_DEF_STEREO_COUNT>
-4
-
-> <PUBCHEM_ATOM_UDEF_STEREO_COUNT>
-1
-
-> <PUBCHEM_BOND_DEF_STEREO_COUNT>
-0
-
-> <PUBCHEM_BOND_UDEF_STEREO_COUNT>
-0
-
-> <PUBCHEM_ISOTOPIC_ATOM_COUNT>
-0
-
-> <PUBCHEM_COMPONENT_COUNT>
-1
-
-> <PUBCHEM_CACTVS_TAUTO_COUNT>
-1
-
-> <PUBCHEM_CONFORMER_ID>
-000016A100000001
-
-> <PUBCHEM_MMFF94_ENERGY>
-27.5671
-
-> <PUBCHEM_FEATURE_SELFOVERLAP>
-60.963
-
-> <PUBCHEM_SHAPE_FINGERPRINT>
-12423570 1 11440868573817502106
-16945 1 18338792415782022985
-18185500 45 18410572903041433514
-193761 8 18122905588311858698
-21040471 1 18339079405607498497
-23235685 24 18410853278337711372
-2334 1 17834396004942031816
-23402655 69 18267854013893658469
-23552423 10 18120089751981225934
-23559900 14 18270413797459679636
-241688 4 17978794506319527824
-2748010 2 18194117417474202524
-5084963 1 17769667725561077874
-5255222 1 18335976562245387725
-528862 383 18261390018417527851
-528886 8 18411416206831951673
-53812653 166 18412823616180991792
-63268167 104 18410859824078808769
-66348 1 18411141294496697448
-
-> <PUBCHEM_SHAPE_MULTIPOLES>
-211.74
-3.59
-2.42
-0.65
-1.75
-0.15
-0
--0.75
--0.13
--0.7
-0.1
--0.03
-0.03
--0.1
-
-> <PUBCHEM_SHAPE_SELFOVERLAP>
-421.584
-
-> <PUBCHEM_SHAPE_VOLUME>
-123.3
-
-> <PUBCHEM_COORDINATE_TYPE>
-2
-5
-10
-
-$$$$
-"""
-    
-    MoleculeView(molFile: testData)
-        .ignoresSafeArea(edges: .all)
+    MoleculeView()
     
 }
+

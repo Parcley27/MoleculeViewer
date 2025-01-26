@@ -58,26 +58,36 @@ struct ContentView: View {
  */
 
 struct ContentView: View {
-    func loadMolFile(named filename: String) -> String? {
-        if let filePath = Bundle.main.path(forResource: filename, ofType: "mol") {
-            return try? String(contentsOfFile: filePath, encoding: .utf8)
-            
-        }
-        
-        return nil
-    }
-    
     var body: some View {
-        if let molFileContent = loadMolFile(named: "Sulfur Dioxide") {
+        ZStack {
+            MoleculeView()
             
-            MoleculeView(molFile: molFileContent)
-                .edgesIgnoringSafeArea(.all)
-            
+            VStack {
+                Spacer()
+                
+                ZStack {
+                    Capsule()
+                        .fill(.white)
+                        .opacity(0.5)
+                        .blur(radius: 30)
+                        .frame(width: 250, height: 100)
+                    
+                    VStack {
+                        Text("C\u{2088}H\u{2081}\u{2080}N\u{2084}O\u{2082}")
+                            .font(.system(size: 32, weight: .bold, design: .default))
+                            .foregroundStyle(.black)
+                        
+                        Text("Caffine")
+                            .font(.system(size: 24, weight: .bold, design: .default))
+                            .foregroundStyle(.black)
+                    }
+                }
+            }
         }
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+    
 }
