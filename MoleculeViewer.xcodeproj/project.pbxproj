@@ -34,6 +34,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"Molecule Files/Caffeine CID 2519.sdf",
+				"Molecule Files/Hydrochloric Acid CID 313.sdf",
 				"Molecule Files/Methane.mol",
 				"Molecule Files/Water.mol",
 			);
@@ -43,6 +44,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"Molecule Files/Caffeine CID 2519.sdf",
+				"Molecule Files/Hydrochloric Acid CID 313.sdf",
 				"Molecule Files/Methane.mol",
 				"Molecule Files/Water.mol",
 			);

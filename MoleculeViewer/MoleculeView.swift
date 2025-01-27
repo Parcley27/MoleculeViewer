@@ -31,61 +31,15 @@ struct MoleculeView: View {
     func loadAtomsAndBonds() -> [Atom]? {
         // Hardcoded .mol content including the header line
         let molContent = """
-         24 25  0     0  0  0  0  0  0999 V2000
-            0.4700    2.5688    0.0006 O   0  0  0  0  0  0  0  0  0  0  0  0
-           -3.1271   -0.4436   -0.0003 O   0  0  0  0  0  0  0  0  0  0  0  0
-           -0.9686   -1.3125    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
-            2.2182    0.1412   -0.0003 N   0  0  0  0  0  0  0  0  0  0  0  0
-           -1.3477    1.0797   -0.0001 N   0  0  0  0  0  0  0  0  0  0  0  0
-            1.4119   -1.9372    0.0002 N   0  0  0  0  0  0  0  0  0  0  0  0
-            0.8579    0.2592   -0.0008 C   0  0  0  0  0  0  0  0  0  0  0  0
-            0.3897   -1.0264   -0.0004 C   0  0  0  0  0  0  0  0  0  0  0  0
-            0.0307    1.4220   -0.0006 C   0  0  0  0  0  0  0  0  0  0  0  0
-           -1.9061   -0.2495   -0.0004 C   0  0  0  0  0  0  0  0  0  0  0  0
-            2.5032   -1.1998    0.0003 C   0  0  0  0  0  0  0  0  0  0  0  0
-           -1.4276   -2.6960    0.0008 C   0  0  0  0  0  0  0  0  0  0  0  0
-            3.1926    1.2061    0.0003 C   0  0  0  0  0  0  0  0  0  0  0  0
-           -2.2969    2.1881    0.0007 C   0  0  0  0  0  0  0  0  0  0  0  0
-            3.5163   -1.5787    0.0008 H   0  0  0  0  0  0  0  0  0  0  0  0
-           -1.0451   -3.1973   -0.8937 H   0  0  0  0  0  0  0  0  0  0  0  0
-           -2.5186   -2.7596    0.0011 H   0  0  0  0  0  0  0  0  0  0  0  0
-           -1.0447   -3.1963    0.8957 H   0  0  0  0  0  0  0  0  0  0  0  0
-            4.1992    0.7801    0.0002 H   0  0  0  0  0  0  0  0  0  0  0  0
-            3.0468    1.8092   -0.8992 H   0  0  0  0  0  0  0  0  0  0  0  0
-            3.0466    1.8083    0.9004 H   0  0  0  0  0  0  0  0  0  0  0  0
-           -1.8087    3.1651   -0.0003 H   0  0  0  0  0  0  0  0  0  0  0  0
-           -2.9322    2.1027    0.8881 H   0  0  0  0  0  0  0  0  0  0  0  0
-           -2.9346    2.1021   -0.8849 H   0  0  0  0  0  0  0  0  0  0  0  0
-          1  9  2  0  0  0  0
-          2 10  2  0  0  0  0
-          3  8  1  0  0  0  0
-          3 10  1  0  0  0  0
-          3 12  1  0  0  0  0
-          4  7  1  0  0  0  0
-          4 11  1  0  0  0  0
-          4 13  1  0  0  0  0
-          5  9  1  0  0  0  0
-          5 10  1  0  0  0  0
-          5 14  1  0  0  0  0
-          6  8  1  0  0  0  0
-          6 11  2  0  0  0  0
-          7  8  2  0  0  0  0
-          7  9  1  0  0  0  0
-         11 15  1  0  0  0  0
-         12 16  1  0  0  0  0
-         12 17  1  0  0  0  0
-         12 18  1  0  0  0  0
-         13 19  1  0  0  0  0
-         13 20  1  0  0  0  0
-         13 21  1  0  0  0  0
-         14 22  1  0  0  0  0
-         14 23  1  0  0  0  0
-         14 24  1  0  0  0  0
+        2  1  0     0  0  0  0  0  0999 V2000
+          1.0000    0.0000    0.0000 Cl  0  0  0  0  0  0  0  0  0  0  0  0
+          0.0000    0.0000    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+        1  2  1  0  0  0  0
         """
         
-        let atomColors = ["H": UIColor(Color.white), "C": UIColor(Color.black), "N": UIColor(Color.blue), "O": UIColor(Color.red)]
+        let atomColors = ["H": UIColor(Color.white), "C": UIColor(Color.black), "N": UIColor(Color.blue), "O": UIColor(Color.red), "Cl": UIColor(Color.green)]
         // From https://www.chem.ucla.edu/~harding/IGOC/A/atomic_radius.html
-        let atomSizes = ["H": 0.25, "C": 0.70, "N": 0.65, "O": 0.60]
+        let atomSizes = ["H": 0.25, "C": 0.70, "N": 0.65, "O": 0.60, "Cl": 0.79]
         
         let sizeScalar = 0.5
         
@@ -202,7 +156,8 @@ struct MoleculeView: View {
     
     func calculateDipoleVector(for bond: Bond) -> SCNVector3 {
         let electronegativities: [String: Float] = [
-            "H": 2.20, "C": 2.55, "O": 3.44, "N": 3.04, "S": 2.58 // Example values
+            "H": 2.20, "C": 2.55, "O": 3.44, "N": 3.04, "S": 2.58, "Cl": 3.16
+            
         ]
         
         // Get electronegativities of the two atoms
@@ -302,6 +257,103 @@ struct MoleculeView: View {
         let energy = -mu1DotMu2 / pow(r, 3) + 3 * mu1DotR * mu2DotR / pow(r, 3)
         
         return energy
+    }
+    
+    func calculateAllDipoleInteractions(molecules: [(dipole: SCNVector3, position: SCNVector3)]) -> [[Float]] {
+        var interactionMatrix: [[Float]] = Array(repeating: Array(repeating: 0.0, count: molecules.count), count: molecules.count)
+        
+        for i in 0..<molecules.count {
+            for j in i+1..<molecules.count {
+                let interactionEnergy = calculateDipoleDipoleInteraction(
+                    dipole1: molecules[i].dipole,
+                    dipole2: molecules[j].dipole,
+                    position1: molecules[i].position,
+                    position2: molecules[j].position
+                )
+                interactionMatrix[i][j] = interactionEnergy
+                interactionMatrix[j][i] = interactionEnergy // Symmetric matrix
+            }
+        }
+        
+        return interactionMatrix
+    }
+    
+    func calculateNetForces(molecules: [(dipole: SCNVector3, position: SCNVector3)]) -> [SCNVector3] {
+        var forces = Array(repeating: SCNVector3(0, 0, 0), count: molecules.count)
+        
+        for i in 0..<molecules.count {
+            for j in 0..<molecules.count where i != j {
+                let dipole1 = molecules[i].dipole
+                let dipole2 = molecules[j].dipole
+                let position1 = molecules[i].position
+                let position2 = molecules[j].position
+                
+                // Distance vector and magnitude
+                let rVector = SCNVector3(
+                    position2.x - position1.x,
+                    position2.y - position1.y,
+                    position2.z - position1.z
+                )
+                let r = rVector.length()
+                let rUnit = rVector.normalized()
+                
+                // Dipole-dipole interaction force components
+                let mu1DotMu2 = dipole1.dot(dipole2)
+                let mu1DotR = dipole1.dot(rUnit)
+                let mu2DotR = dipole2.dot(rUnit)
+                
+                let commonTerm = 3 * mu1DotR * mu2DotR - mu1DotMu2
+                let forceMagnitude = commonTerm / pow(r, 4) // Gradient of dipole interaction potential
+                
+                // Force vector
+                let force = rUnit * forceMagnitude
+                forces[i] = forces[i] + force
+            }
+        }
+        
+        return forces
+    }
+    
+    func updateMoleculePositions(
+        molecules: inout [(node: SCNNode, dipole: SCNVector3, position: SCNVector3, velocity: SCNVector3, mass: Float)],
+        deltaTime: Float
+    ) {
+        let forces = calculateNetForces(molecules: molecules.map { ($0.dipole, $0.position) })
+        
+        for i in 0..<molecules.count {
+            let mass = molecules[i].mass
+            let acceleration = forces[i] * (1.0 / mass) // F = ma => a = F/m
+            molecules[i].velocity = molecules[i].velocity + acceleration * deltaTime
+            molecules[i].position = molecules[i].position + molecules[i].velocity * deltaTime
+        }
+    }
+    
+    func simulateMolecularMotion(scene: SCNScene, molecules: inout [(node: SCNNode, dipole: SCNVector3, position: SCNVector3, velocity: SCNVector3, mass: Float)]) {
+        let deltaTime: Float = 1.0/60.0 // ~60 FPS
+        
+        // Create a local copy of the molecules to work with
+        var moleculesCopy = molecules
+        
+        Timer.scheduledTimer(withTimeInterval: TimeInterval(deltaTime), repeats: true) { timer in
+            // Update molecule positions and velocities
+            updateMoleculePositions(molecules: &moleculesCopy, deltaTime: deltaTime)
+            
+            // Update scene
+            for i in 0..<moleculesCopy.count {
+                let molecule = moleculesCopy[i]
+                moleculesCopy[i].node.position = molecule.position
+            }
+            
+            // Add termination condition (e.g., stop when molecules move out of bounds)
+            let maxDistance: Float = 100.0
+            if moleculesCopy.contains(where: { $0.position.length() > maxDistance }) {
+                timer.invalidate()
+                print("Simulation stopped: molecules moved out of bounds.")
+            }
+        }
+        
+        // Reassign the modified copy back to the original inout parameter when needed
+        molecules = moleculesCopy
     }
     
     func distanceBetween(_ point1: SCNVector3, _ point2: SCNVector3) -> Float {
@@ -475,44 +527,34 @@ struct MoleculeView: View {
     func createScene() -> SCNScene {
         let scene = SCNScene()
         
-        /*
-        let molecularStructureNode = createMolecularStructure(
-            at: SCNVector3(0, 0, 0),
-            //rotation: SCNVector3(0, Double.pi / 4, 0) // Rotate 45 degrees around the Y-axis
-            rotation: SCNVector3(0, 0, 0)
+        var molecules = [
+            (node: createMolecularStructure(at: SCNVector3(0, 0, 0), rotation: SCNVector3(0, 0, 0)).node,
+             dipole: SCNVector3(1, 0, 0),
+             position: SCNVector3(0, 2, 0),
+             velocity: SCNVector3(0, 0, 0),
+             mass: Float(0.1)),
+             
+            (node: createMolecularStructure(at: SCNVector3(5, 0, 0), rotation: SCNVector3(0, 0, 0)).node,
+             dipole: SCNVector3(-1, 0, 0),
+             position: SCNVector3(0, -2, 0),
+             velocity: SCNVector3(0, 0, 0),
+             mass: Float(0.1))
             
-        )
-         */
+        ]
         
-        //scene.rootNode.addChildNode(molecularStructureNode)
-        //scene.rootNode.addChildNode(createMolecularStructure())
-        //scene.rootNode.addChildNode(createMolecularStructure(at: SCNVector3(0, 0, 10)))
+        // Add molecules to the scene
+        for molecule in molecules {
+            scene.rootNode.addChildNode(molecule.node)
+            
+        }
         
-        /*
-        SCNTransaction.begin()
-        SCNTransaction.animationDuration = 2.0 // Rotate over 2 seconds
-         
-        // Apply rotation
-        molecularStructureNode.eulerAngles = SCNVector3(0, Double.pi, 0) // Rotate 180° around Y-axis
-         
-        SCNTransaction.commit()
-        */
+        // Start simulation
+        simulateMolecularMotion(scene: scene, molecules: &molecules)
         
-        let molecule1 = createMolecularStructure(at: SCNVector3(0, 5, 0), rotation: SCNVector3(0, 0, 0))
-        let molecule2 = createMolecularStructure(at: SCNVector3(0, -5, 0), rotation: SCNVector3(0, 0, 0))
+        //let interactionMatrix = calculateAllDipoleInteractions(molecules: molecules)
+        //print("Dipole-Dipole Interaction Matrix: \(interactionMatrix)")
         
-        scene.rootNode.addChildNode(molecule1.node)
-        scene.rootNode.addChildNode(molecule2.node)
         
-        // Calculate dipole-dipole interaction energy
-        let interactionEnergy = calculateDipoleDipoleInteraction(
-            dipole1: molecule1.dipole,
-            dipole2: molecule2.dipole,
-            position1: molecule1.position,
-            position2: molecule2.position
-        )
-        
-        print("Dipole-Dipole Interaction Energy: \(interactionEnergy)")
         
         // XYZ Coordniate reference
         let cylinderNodeX = createCylinder(from: SCNVector3(0, 0, 0), to: SCNVector3(1, 0, 0), color: .red)
@@ -552,7 +594,7 @@ struct MoleculeView: View {
         camera.wantsDepthOfField = false
         camera.focalLength = 50
         //camera.aperture = 0.5
-
+        
         cameraNode.camera = camera
         cameraNode.position = SCNVector3(0, 10, 50)
         cameraNode.look(at: SCNVector3(0, 0, 0))
