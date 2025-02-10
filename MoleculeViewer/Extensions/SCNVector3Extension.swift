@@ -11,11 +11,17 @@ import SceneKit
 extension SCNVector3 {
     func length() -> Float {
         return sqrt(x * x + y * y + z * z)
+        
     }
     
     func normalized() -> SCNVector3 {
         let len = length()
         return SCNVector3(x / len, y / len, z / len)
+    }
+    
+    func clamped(max: Float) -> SCNVector3 {
+        let magnitude = self.length()
+        return (magnitude > max) ? (self.normalized() * max) : self
     }
     
     func cross(_ v: SCNVector3) -> SCNVector3 {
@@ -43,8 +49,15 @@ extension SCNVector3 {
         return SCNVector3(left.x + right.x, left.y + right.y, left.z + right.z)
     }
     
+    static func - (left: SCNVector3, right: SCNVector3) -> SCNVector3 {
+        return SCNVector3(left.x - right.x, left.y - right.y, left.z - right.z)
+    }
+    
     static func * (vector: SCNVector3, scalar: Float) -> SCNVector3 {
         return SCNVector3(vector.x * scalar, vector.y * scalar, vector.z * scalar)
     }
     
+    static func / (vector: SCNVector3, scalar: Float) -> SCNVector3 {
+        return SCNVector3(vector.x / scalar, vector.y / scalar, vector.z / scalar)
+    }
 }

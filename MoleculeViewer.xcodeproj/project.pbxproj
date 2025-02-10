@@ -33,20 +33,25 @@
 		6EAE1E7C2D461C4C0096861B /* Exceptions for "MoleculeViewer" folder in "MoleculeViewer" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Molecule Files/Caffeine CID 2519.sdf",
-				"Molecule Files/Hydrochloric Acid CID 313.sdf",
-				"Molecule Files/Methane.mol",
-				"Molecule Files/Water.mol",
+				Info.plist,
+				"Molecule Files/C8H10N4O2 Caffeine.sdf",
+				"Molecule Files/CH4Methane.mol",
+				"Molecule Files/H2O Water.mol",
+				"Molecule Files/HCl Hydrochloric Acid.mol",
+				"Molecule Files/N2 Nitrogen.sdf",
+				"Molecule Files/NaCl Sodium Chloride.sdf",
 			);
 			target = 6E4D62CA2D40BF34009545FD /* MoleculeViewer */;
 		};
 		6EAE1E7D2D461C4C0096861B /* Exceptions for "MoleculeViewer" folder in "MoleculeViewerUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Molecule Files/Caffeine CID 2519.sdf",
-				"Molecule Files/Hydrochloric Acid CID 313.sdf",
-				"Molecule Files/Methane.mol",
-				"Molecule Files/Water.mol",
+				"Molecule Files/C8H10N4O2 Caffeine.sdf",
+				"Molecule Files/CH4Methane.mol",
+				"Molecule Files/H2O Water.mol",
+				"Molecule Files/HCl Hydrochloric Acid.mol",
+				"Molecule Files/N2 Nitrogen.sdf",
+				"Molecule Files/NaCl Sodium Chloride.sdf",
 			);
 			target = 6E4D62E62D40BF35009545FD /* MoleculeViewerUITests */;
 		};
@@ -426,9 +431,11 @@
 				DEVELOPMENT_TEAM = 7WCH78FX92;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MoleculeViewer/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -455,9 +462,11 @@
 				DEVELOPMENT_TEAM = 7WCH78FX92;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MoleculeViewer/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
