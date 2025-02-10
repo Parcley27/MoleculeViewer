@@ -18,19 +18,34 @@ struct MoleculeSimulationView: View {
     
     let temperature: Float = 0.1
     let rotationRandomness: Float = Float.pi / 200
-    let movementLoss: Float = 0.0001
+    let movementLoss: Float = 0.01
     
-    let originPull: Float = 10000
+    let originPull: Float = 1000
     let imfScalar: Float = 2
     
-    func loadAtomsAndBonds() -> [Atom]? {
+    let moleculesToShow: [String] = ["h2o"]
+    
+    func loadAtomsAndBonds(molecule: String = "h2o") -> [Atom]? {
         // Hardcoded .mol content including the header line
-        let molContent = """
+        let h2o = """
+        3  2  0     0  0  0  0  0  0999 V2000
+          0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+          0.2774    0.8929    0.2544 H   0  0  0  0  0  0  0  0  0  0  0  0
+          0.6068   -0.2383   -0.7169 H   0  0  0  0  0  0  0  0  0  0  0  0
+        1  2  1  0  0  0  0
+        1  3  1  0  0  0  0
+        """
+        
+        let n2 = """
         2  1  0     0  0  0  0  0  0999 V2000
          -0.5560    0.0000    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
           0.5560    0.0000    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
         1  2  3  0  0  0  0
         """
+        
+        let moleculeLibrary = ["h2o": h2o, "n2": n2]
+        
+        let molContent = moleculeLibrary[molecule] ?? h2o
         
         // From https://en.wikipedia.org/wiki/CPK_coloring
         let atomColors = ["H": UIColor(Color.white), "C": UIColor(Color.black), "N": UIColor(Color.blue), "O": UIColor(Color.red), "Na": #colorLiteral(red: 0.2745098174, green: 0.4862745106, blue: 0.1411764771, alpha: 1) , "Cl": UIColor(Color.green)]
@@ -491,17 +506,19 @@ struct MoleculeSimulationView: View {
         maxRotationAngle: CGFloat = .pi,
         rotationRandomness: Float = .pi / 180
     ) {
-        guard localDipole.length() > 0 else { return }
         
-        if localDipole.length() < 2 { return }
+        print(localDipole.length())
+        
+        // Only apply orientation if dipole is non-zero and less than 0.27
+        //guard localDipole.length() < 1 else { return }
+        
+        if localDipole.length() < 0.1 { return }
         
         // Get current world dipole direction
         let currentWorldDipole = rotateVector(localDipole, by: node.rotation).normalized()
         let desiredDirection = direction.normalized()
         
         guard currentWorldDipole.length() > 0 && desiredDirection.length() > 0 else { return }
-        
-        print(currentWorldDipole)
         
         // Calculate rotation axis and angle
         let axis = currentWorldDipole.cross(desiredDirection)
@@ -510,14 +527,7 @@ struct MoleculeSimulationView: View {
         var angle = acos(currentWorldDipole.dot(desiredDirection))
         angle = angle.isNaN ? 0 : angle
         
-        print(angle)
-        
-        // Apply jitter and clamp rotation
-        //angle += Float.random(in: -rotationRandomness...rotationRandomness)
         let clampedAngle = min(angle, Float(maxRotationAngle))
-        
-        print(axis)
-        print()
         
         // Apply incremental rotation
         node.rotation = SCNVector4(axis.x, axis.y, axis.z, clampedAngle)
@@ -770,20 +780,20 @@ struct MoleculeSimulationView: View {
    }
    
    // MARK: createMolecularStructure
-   func createMolecularStructure(at origin: SCNVector3 = SCNVector3(0, 0, 0), rotation: SCNVector3 = SCNVector3(0, 0, 0)) -> (node: SCNNode, dipole: SCNVector3, position: SCNVector3) {
+    func createMolecularStructure(at origin: SCNVector3 = SCNVector3(0, 0, 0), rotation: SCNVector3 = SCNVector3(0, 0, 0), molecule: String = "h2o") -> (node: SCNNode, dipole: SCNVector3, position: SCNVector3) {
        let structureNode = SCNNode() // Parent node for the molecular structure
        
        // Load atoms and bonds
-       guard var atoms = loadAtomsAndBonds() else {
-           print("Failed to load atoms and bonds")
-           return (structureNode, SCNVector3(0, 0, 0), origin)
-       }
+        guard var atoms = loadAtomsAndBonds(molecule: molecule) else {
+            print("Failed to load atoms and bonds")
+            return (structureNode, SCNVector3(0, 0, 0), origin)
+        }
        
-       let centerOfMass = calculateCenterOfMass(for: atoms)
-       for i in 0..<atoms.count {
-           atoms[i].position = atoms[i].position - centerOfMass
+        let centerOfMass = calculateCenterOfMass(for: atoms)
+        for i in 0..<atoms.count {
+            atoms[i].position = atoms[i].position - centerOfMass
            
-       }
+        }
        
        var allBonds: [Bond] = [] // Collect all bonds for dipole moment calculation
        
@@ -851,6 +861,8 @@ struct MoleculeSimulationView: View {
         molecules.removeAll()
        
         for _ in 1 ... moleculeCount {
+            let moleculeChoice = moleculesToShow.randomElement()
+            
             let moleculeX = Int.random(in: -spawnArea ... spawnArea)
             let moleculeY = Int.random(in: -spawnArea ... spawnArea)
             let moleculeZ = Int.random(in: -spawnArea ... spawnArea)
@@ -868,10 +880,12 @@ struct MoleculeSimulationView: View {
             let moleculeZRotation = Double.random(in: -.pi ... .pi)
             
             let moleculeOrientation = SCNVector3(moleculeXRotation, moleculeYRotation, moleculeZRotation)
+            
+            let molecule = createMolecularStructure(at: moleculePosition, rotation: moleculeOrientation, molecule: moleculeChoice ?? "h2o")
            
             molecules.append(
-            (node: createMolecularStructure(at: moleculePosition, rotation: moleculeOrientation).node,
-             dipole: SCNVector3(x: -1.3493353, y: -0.9989537, z: 0.705799),
+                (node: molecule.node,
+                 dipole: molecule.dipole,
              position: moleculePosition,
              velocity: moleculeSpeed,
              mass: Float(0.1)))

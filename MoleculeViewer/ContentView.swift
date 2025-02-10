@@ -35,11 +35,11 @@ struct ContentView: View {
 //                    Text("Selection: \(selectedScene)")
 //                        .foregroundStyle(.black)
                     
-                    Text("N\u{2082}")
+                    Text("H\u{2082}O")
                         .font(.system(size: 32, weight: .bold, design: .default))
                         .foregroundStyle(.black)
                         
-                    Text("Nitrogen Gas")
+                    Text("Liquid Water")
                         .font(.system(size: 24, weight: .medium, design: .default))
                         .foregroundStyle(.black)
                     
