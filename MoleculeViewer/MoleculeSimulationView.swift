@@ -12,22 +12,22 @@ import Foundation
 struct MoleculeSimulationView: View {
     let spawnArea: Int = 10
     let spawnSpeed: Double = 1.0
-    let moleculeCount: Int = 30
+    let moleculeCount: Int = 40
     
-    let sizeScalar: Double = 0.5
+    let sizeScalar: Double = 1
     
     let temperature: Float = 0.1
     let rotationRandomness: Float = Float.pi / 200
-    let movementLoss: Float = 0.01
+    let movementLoss: Float = 0.001
     
-    let originPull: Float = 1000
+    let originPull: Float = 10000
     let imfScalar: Float = 2
     
-    let moleculesToShow: [String] = ["h2o"]
+    let moleculesToShow: [String] = ["H2O", "H2O", "H2O", "CO2", "CO2", "C6H12O6"]
     
-    func loadAtomsAndBonds(molecule: String = "h2o") -> [Atom]? {
+    func loadAtomsAndBonds(molecule: String = "H2O") -> [Atom]? {
         // Hardcoded .mol content including the header line
-        let h2o = """
+        let H2O = """
         3  2  0     0  0  0  0  0  0999 V2000
           0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
           0.2774    0.8929    0.2544 H   0  0  0  0  0  0  0  0  0  0  0  0
@@ -36,16 +36,84 @@ struct MoleculeSimulationView: View {
         1  3  1  0  0  0  0
         """
         
-        let n2 = """
+        let N2 = """
         2  1  0     0  0  0  0  0  0999 V2000
          -0.5560    0.0000    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
           0.5560    0.0000    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
         1  2  3  0  0  0  0
         """
         
-        let moleculeLibrary = ["h2o": h2o, "n2": n2]
+        let C6H12O6 = """
+         24 24  0     1  0  0  0  0  0999 V2000
+           -0.6679    1.1587    0.2570 O   0  0  0  0  0  0  0  0  0  0  0  0
+           -0.8870   -2.4483   -0.3388 O   0  0  0  0  0  0  0  0  0  0  0  0
+            1.8623   -2.0693    0.4696 O   0  0  0  0  0  0  0  0  0  0  0  0
+            2.8609    0.5414   -0.4619 O   0  0  0  0  0  0  0  0  0  0  0  0
+            1.1222    2.6552    0.2574 O   0  0  0  0  0  0  0  0  0  0  0  0
+           -3.3742    0.9717   -0.1865 O   0  0  0  0  0  0  0  0  0  0  0  0
+           -0.3727   -1.2470    0.2300 C   0  0  1  0  0  0  0  0  0  0  0  0
+            1.0856   -1.0709   -0.1940 C   0  0  1  0  0  0  0  0  0  0  0  0
+           -1.2211   -0.0621   -0.2375 C   0  0  1  0  0  0  0  0  0  0  0  0
+            1.6082    0.3151    0.1839 C   0  0  2  0  0  0  0  0  0  0  0  0
+            0.6388    1.4132   -0.2534 C   0  0  1  0  0  0  0  0  0  0  0  0
+           -2.6550   -0.1577    0.2740 C   0  0  0  0  0  0  0  0  0  0  0  0
+           -0.4248   -1.3522    1.3206 H   0  0  0  0  0  0  0  0  0  0  0  0
+            1.2066   -1.2487   -1.2697 H   0  0  0  0  0  0  0  0  0  0  0  0
+           -1.2548   -0.0098   -1.3343 H   0  0  0  0  0  0  0  0  0  0  0  0
+            1.7952    0.3598    1.2636 H   0  0  0  0  0  0  0  0  0  0  0  0
+            0.5967    1.5141   -1.3440 H   0  0  0  0  0  0  0  0  0  0  0  0
+           -2.6916   -0.1535    1.3685 H   0  0  0  0  0  0  0  0  0  0  0  0
+           -3.1564   -1.0581   -0.0922 H   0  0  0  0  0  0  0  0  0  0  0  0
+           -0.8514   -2.3615   -1.3066 H   0  0  0  0  0  0  0  0  0  0  0  0
+            1.4973   -2.9356    0.2200 H   0  0  0  0  0  0  0  0  0  0  0  0
+            2.7165    0.4989   -1.4227 H   0  0  0  0  0  0  0  0  0  0  0  0
+            1.4876    2.5033    1.1448 H   0  0  0  0  0  0  0  0  0  0  0  0
+           -2.9192    1.7652    0.1440 H   0  0  0  0  0  0  0  0  0  0  0  0
+          1  9  1  0  0  0  0
+          1 11  1  0  0  0  0
+          2  7  1  0  0  0  0
+          2 20  1  0  0  0  0
+          3  8  1  0  0  0  0
+          3 21  1  0  0  0  0
+          4 10  1  0  0  0  0
+          4 22  1  0  0  0  0
+          5 11  1  0  0  0  0
+          5 23  1  0  0  0  0
+          6 12  1  0  0  0  0
+          6 24  1  0  0  0  0
+          7  8  1  0  0  0  0
+          7  9  1  0  0  0  0
+          7 13  1  0  0  0  0
+          8 10  1  0  0  0  0
+          8 14  1  0  0  0  0
+          9 12  1  0  0  0  0
+          9 15  1  0  0  0  0
+         10 11  1  0  0  0  0
+         10 16  1  0  0  0  0
+         11 17  1  0  0  0  0
+         12 18  1  0  0  0  0
+         12 19  1  0  0  0  0
+        """
         
-        let molContent = moleculeLibrary[molecule] ?? h2o
+        let NaCl: String = """
+          2  1  0     0  0  0  0  0  0999 V2000
+            0.0000    0.0000    0.0000 Cl  0  5  0  0  0  0  0  0  0  0  0  0
+            1.5000    0.0000    0.0000 Na  0  3  0  0  0  0  0  0  0  0  0  0
+          1  2  1  0  0  0
+        """
+        
+        let CO2: String = """
+        3  2  0     0  0  0  0  0  0999 V2000
+         -1.1970    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+          1.1970    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+          0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+        1  3  2  0  0  0  0
+        2  3  2  0  0  0  0
+        """
+        
+        let moleculeLibrary = ["H2O": H2O, "N2": N2, "C6H12O6": C6H12O6, "NaCl": NaCl, "CO2": CO2]
+        
+        let molContent = moleculeLibrary[molecule] ?? H2O
         
         // From https://en.wikipedia.org/wiki/CPK_coloring
         let atomColors = ["H": UIColor(Color.white), "C": UIColor(Color.black), "N": UIColor(Color.blue), "O": UIColor(Color.red), "Na": #colorLiteral(red: 0.2745098174, green: 0.4862745106, blue: 0.1411764771, alpha: 1) , "Cl": UIColor(Color.green)]
@@ -183,13 +251,13 @@ struct MoleculeSimulationView: View {
         ]
         
         guard let en1 = electronegativities[bond.atom1.element],
-              let en2 = electronegativities[bond.atom2.element] else {
+              let eN2 = electronegativities[bond.atom2.element] else {
             print("Warning: Electronegativity value missing for one or both atoms.")
             return SCNVector3(0, 0, 0)
             
         }
         
-        let deltaEN = abs(en1 - en2)
+        let deltaEN = abs(en1 - eN2)
         
         // Approximate partial charge (q) in elementary charge (e)
         let elementaryCharge: Float = 1.6e-19 // Coulombs
@@ -288,12 +356,12 @@ struct MoleculeSimulationView: View {
         
     }
     
-    func calculateDipoleDipoleInteraction(dipole1: SCNVector3, dipole2: SCNVector3, position1: SCNVector3, position2: SCNVector3) -> Float {
+    func calculateDipoleDipoleInteraction(dipole1: SCNVector3, dipole2: SCNVector3, position1: SCNVector3, positioN2: SCNVector3) -> Float {
         // Distance vector between the two dipoles
         let rVector = SCNVector3(
-            position2.x - position1.x,
-            position2.y - position1.y,
-            position2.z - position1.z
+            positioN2.x - position1.x,
+            positioN2.y - position1.y,
+            positioN2.z - position1.z
             
         )
         
@@ -324,7 +392,7 @@ struct MoleculeSimulationView: View {
                     dipole1: molecules[i].dipole,
                     dipole2: molecules[j].dipole,
                     position1: molecules[i].position,
-                    position2: molecules[j].position
+                    positioN2: molecules[j].position
                 )
                 interactionMatrix[i][j] = interactionEnergy
                 interactionMatrix[j][i] = interactionEnergy // Symmetric matrix
@@ -355,13 +423,13 @@ struct MoleculeSimulationView: View {
             
             for j in 0..<molecules.count where i != j {
                 let dipole2 = molecules[j].dipole
-                let position2 = molecules[j].position
+                let positioN2 = molecules[j].position
                 
                 // Distance vector and magnitude
                 let rVector = SCNVector3(
-                    position2.x - position1.x,
-                    position2.y - position1.y,
-                    position2.z - position1.z
+                    positioN2.x - position1.x,
+                    positioN2.y - position1.y,
+                    positioN2.z - position1.z
                 )
                 
                 let r = rVector.length()
@@ -428,12 +496,12 @@ struct MoleculeSimulationView: View {
         let forceVector = calculateDipoleVector(for: bond)
         
         let position1 = bond.atom1.position
-        let position2 = bond.atom2.position
+        let positioN2 = bond.atom2.position
             
         let bondOrigin = SCNVector3(
-                (position1.x + position2.x) / 2,
-                (position1.y + position2.y) / 2,
-                (position1.z + position2.z) / 2
+                (position1.x + positioN2.x) / 2,
+                (position1.y + positioN2.y) / 2,
+                (position1.z + positioN2.z) / 2
             )
         
         let dipoleNode = createDipoleNode(from: bondOrigin, withDipole: forceVector, color: .red)
@@ -503,7 +571,7 @@ struct MoleculeSimulationView: View {
         node: SCNNode,
         localDipole: SCNVector3,
         direction: SCNVector3,
-        maxRotationAngle: CGFloat = .pi,
+        maxRotationAngle: CGFloat = .pi / 90,
         rotationRandomness: Float = .pi / 180
     ) {
         
@@ -589,7 +657,7 @@ struct MoleculeSimulationView: View {
            // Check if the position is too far or invalid
            if molecule.node.position.length().isNaN || molecule.node.position.length() > 1000 {
                print("Molecule \(i) in invalid position")
-               exit(1)
+               //exit(1)
                
            }
            
@@ -667,15 +735,15 @@ struct MoleculeSimulationView: View {
        
    }
    
-   func createBondNode(from position1: SCNVector3, to position2: SCNVector3, bondType: Int = 1, color: UIColor = UIColor.gray, radius: CGFloat = 0.04) -> SCNNode {
+   func createBondNode(from position1: SCNVector3, to positioN2: SCNVector3, bondType: Int = 1, color: UIColor = UIColor.gray, radius: CGFloat = 0.04) -> SCNNode {
        let bondNode = SCNNode()
        
-       // Calculate the direction vector (from position1 to position2)
-       let direction = SCNVector3(position2.x - position1.x, position2.y - position1.y, position2.z - position1.z)
+       // Calculate the direction vector (from position1 to positioN2)
+       let direction = SCNVector3(positioN2.x - position1.x, positioN2.y - position1.y, positioN2.z - position1.z)
        let midPoint = SCNVector3(
-           (position1.x + position2.x) / 2,
-           (position1.y + position2.y) / 2,
-           (position1.z + position2.z) / 2
+           (position1.x + positioN2.x) / 2,
+           (position1.y + positioN2.y) / 2,
+           (position1.z + positioN2.z) / 2
        )
        
        // Normalize the direction vector
@@ -709,7 +777,7 @@ struct MoleculeSimulationView: View {
            
            
            // Create a cylinder for the bond
-           let length = distanceBetween(position1, position2)
+           let length = distanceBetween(position1, positioN2)
            let cylinder = SCNCylinder(radius: radius, height: CGFloat(length))
            
            // Apply color to the cylinder
@@ -780,7 +848,7 @@ struct MoleculeSimulationView: View {
    }
    
    // MARK: createMolecularStructure
-    func createMolecularStructure(at origin: SCNVector3 = SCNVector3(0, 0, 0), rotation: SCNVector3 = SCNVector3(0, 0, 0), molecule: String = "h2o") -> (node: SCNNode, dipole: SCNVector3, position: SCNVector3) {
+    func createMolecularStructure(at origin: SCNVector3 = SCNVector3(0, 0, 0), rotation: SCNVector3 = SCNVector3(0, 0, 0), molecule: String = "H2O") -> (node: SCNNode, dipole: SCNVector3, position: SCNVector3) {
        let structureNode = SCNNode() // Parent node for the molecular structure
        
        // Load atoms and bonds
@@ -881,7 +949,7 @@ struct MoleculeSimulationView: View {
             
             let moleculeOrientation = SCNVector3(moleculeXRotation, moleculeYRotation, moleculeZRotation)
             
-            let molecule = createMolecularStructure(at: moleculePosition, rotation: moleculeOrientation, molecule: moleculeChoice ?? "h2o")
+            let molecule = createMolecularStructure(at: moleculePosition, rotation: moleculeOrientation, molecule: moleculeChoice ?? "H2O")
            
             molecules.append(
                 (node: molecule.node,

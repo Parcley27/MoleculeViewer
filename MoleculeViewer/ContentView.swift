@@ -35,18 +35,18 @@ struct ContentView: View {
 //                    Text("Selection: \(selectedScene)")
 //                        .foregroundStyle(.black)
                     
-                    Text("H\u{2082}O")
+                    Text("Soft Drink")
                         .font(.system(size: 32, weight: .bold, design: .default))
                         .foregroundStyle(.black)
                         
-                    Text("Liquid Water")
+                    Text("Water, Carbon Dioxide, Glucose")
                         .font(.system(size: 24, weight: .medium, design: .default))
                         .foregroundStyle(.black)
                     
 //                        Text("C\u{2088}H\u{2081}\u{2080}N\u{2084}O\u{2082}")
 //                            .font(.system(size: 32, weight: .bold, design: .default))
 //                            .foregroundStyle(.black)
-//                        
+//
 //                        Text("Caffeine")
 //                            .font(.system(size: 24, weight: .medium, design: .default))
 //                            .foregroundStyle(.black)
